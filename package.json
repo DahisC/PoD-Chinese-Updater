@@ -1,0 +1,18 @@
+{
+  "name": "trans",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "adm-zip": "^0.4.16",
+    "extract-zip": "^2.0.1",
+    "pkg": "^4.4.9",
+    "unzipper": "^0.10.11"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
