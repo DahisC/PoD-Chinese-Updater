@@ -3,3 +3,5 @@ index-linux
 index-macos
 index-win.exe
 *.zip
+data/
+version.json
