@@ -1,12 +1,11 @@
 const fs = require("fs");
 const https = require("https");
 const path = require("path");
-const AdmZip = require("adm-zip");
 const readline = require("readline");
-const child_process = require("child_process");
+const execFile = require("child_process").execFile;
+const StreamZip = require("node-stream-zip");
 
 const repo = "MarsFlyPig/PoDChineseUpdate";
-
 let latestVersion;
 let localVersion;
 
@@ -20,7 +19,7 @@ const checkInstallationPath = () =>
   new Promise((resolve, reject) => {
     console.log("[PoD 中文化下載器] - 正在檢查路徑 ...");
     fs.readdir("./", (err, files) => {
-      if (!files.includes("Path of Diablo Launcher.exe")) {
+      if (files.includes("Path of Diablo Launcher.exe")) {
         console.log("[PoD 中文化下載器] 路徑正確");
         resolve();
       } else {
@@ -84,7 +83,6 @@ const compareVersion = () =>
     console.log("[PoD 中文化下載器] - 正在檢查本地端中文化版本 ...");
 
     fs.readdir("./", (err, files) => {
-      console.log(files);
       if (!files.includes("data")) {
         console.log("[PoD 中文化下載器] 尚未安裝中文化，開始安裝");
         resolve();
@@ -97,9 +95,9 @@ const compareVersion = () =>
 
             resolve();
           } else {
-            fs.readFile("version.json", (err, data) => {
+            fs.readFile("./data/version.json", (err, data) => {
               const localVersion = JSON.parse(data.toString()).version;
-              if (localVersion === latestVersion) {
+              if (localVersion !== latestVersion) {
                 console.log(
                   `[PoD 中文化下載器] 本地端版本 ${localVersion}，最新版本 ${latestVersion}，版本不相符，開始自動更新`
                 );
@@ -135,24 +133,33 @@ const downloadLatestFile = () =>
   });
 
 const uncompressZipFile = () =>
-  new Promise(async (resolve, reject) => {
+  new Promise((resolve, reject) => {
     console.log("[PoD 中文化下載器] - 正在解壓縮中文化檔案 ...");
-    const zip = new AdmZip(path.join("./", `${fileName}.zip`));
-    zip.extractEntryTo(
-      `${fileName}/data/`,
-      path.join(__dirname + "/data"),
-      true,
-      true
-    );
-    // const zipEntries = zip.getEntries();
-    // zipEntries.forEach((entry) => {
-    //   if (entry.entryName === fileName + "/data/" && entry.isDirectory) {
-    //     zip.extractEntryTo(entry.entryName, path.join(__dirname), true, true);
-    //     console.log("[PoD 中文化下載器] 解壓縮完成"); ///////////////////////////////寫道這
-    //     // fs.unlink(`${fileName}.zip`);
-    //     resolve();
-    //   }
-    // });
+
+    const zip = new StreamZip({
+      file: `${fileName}.zip`,
+      storeEntries: true,
+    });
+
+    zip.on("ready", () => {
+      fs.rmdirSync("data", { recursive: true });
+      fs.mkdirSync("data");
+      zip.extract(`${fileName}/data/`, "./data", (err) => {
+        console.log(
+          err
+            ? "[PoD 中文化下載器] 解壓縮失敗"
+            : "[PoD 中文化下載器] 解壓縮成功"
+        );
+        zip.close();
+        fs.unlinkSync(`${fileName}.zip`, (err) => {});
+        resolve();
+      });
+    });
+
+    // Handle errors
+    zip.on("error", (err) => {
+      /*...*/
+    });
   });
 
 const showExtraInfo = () => {
@@ -206,16 +213,17 @@ const execute = async () => {
     // openLauncher();
     showExtraInfo();
     console.log("\n");
-    await askQuestion(
-      "[PoD 中文化下載器] 安裝完成！感謝使用 <3。\n\n輸入 Enter 取得矮人之星並退出安裝程序 ..."
+    console.log(
+      `[PoD 中文化下載器] 版本 ${latestVersion} 安裝完成！感謝使用 <3。`
     );
+    execFile("./Path of Diablo Launcher.exe");
   } catch (err) {
     console.log("\n");
     console.error("[PoD 中文化下載器] ***** 安裝並未完成 *****");
     console.log("\n");
     console.log("原因：", err);
     console.log("\n");
-    await askQuestion("[PoD 中文化下載器] \n\n按下 Enter 退出安裝程序 ...");
+    execFile("./Path of Diablo Launcher.exe");
   }
 };
 
