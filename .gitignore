@@ -1,8 +1,0 @@
-/node_modules
-*.zip
-data/
-version.json
-
-package.json
-package-lock.json
-PoD Chinese Updater.js
