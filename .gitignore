@@ -3,6 +3,6 @@
 data/
 version.json
 
-PoD Chinese Updater
-PoD Chinese Updater
-PoD Chinese Updater.exe
+package.json
+package-lock.json
+PoD Chinese Updater.js
